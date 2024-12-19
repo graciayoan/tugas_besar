@@ -1,6 +1,10 @@
-# Data penyimpanan akun pengguna dan soal (disimpan dalam memori)
+import tkinter as tk
+from tkinter import ttk, messagebox
+from tkinter.font import Font
+
+# Data storage remains the same
 data_pengguna = {
-    "admin": {"password": "saya adalah admin", "role": "admin"}  # Default akun admin
+    "admin": {"password": "saya adalah admin", "role": "admin"}
 }
 data_kuis = [
     {"question": "Apa planet terbesar dalam tata surya kita?", "options": ["Mars", "Jupiter", "Pluto", "Saturnus"], "answer": "Jupiter", "points": 10},
@@ -15,427 +19,261 @@ data_kuis = [
     {"question": "Patung Sphinx banyak dijumpai di negara", "options": ["Mesir", "Swiss", "Indonesia", "India"], "answer": "Mesir", "points": 10},
 ]
 
-# Fungsi untuk login
-def login():
-    print("\n=== LOGIN ===")
-    username = input("Username: ")
-    password = input("Password: ")
-
-    if username in data_pengguna and data_pengguna[username]['password'] == password:
-        print("Login berhasil!")
-        return username
-    else:
-        print("Username atau password salah!")
-        return None
-
-# Fungsi untuk mendaftar akun
-def signup():
-    print("\n=== SIGN UP ===")
-    username = input("Username: ")
-    if username in data_pengguna:
-        print("Username sudah terdaftar!")
-        return None
-    password = input("Password: ")
-    data_pengguna[username] = {"password": password, "role": "user"}  # Default role nya user
-    print(f"Akun {username} berhasil dibuat!")
-    return username
-
-# Fungsi untuk menjalankan kuis
-def take_quiz(username):
-    print("\n=== KUIS ===")
-    score = 0
-    for i, question in enumerate(data_kuis, 1):
-        print(f"\nSoal {i}: {question['question']}")
-        for j, option in enumerate(question['options'], 1):
-            print(f"{j}. {option}")
+class QuizApp:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Sistem Kuis")
+        self.root.geometry("500x400")
+        self.root.configure(bg="#f0f0f0")
         
-        # Validasi input pilihan jawaban
-        while True:
-            try:
-                answer = int(input("Pilih jawaban (1-3): "))
-                if answer < 1 or answer > 3:
-                    raise ValueError("Pilihan harus antara 1 dan 3.")
-                break
-            except ValueError as e:
-                print(f"Input salah: {e}")
+        # Configure styles
+        self.style = ttk.Style()
+        self.style.configure('TButton', padding=10, font=('Helvetica', 10))
+        self.style.configure('TLabel', font=('Helvetica', 11), background="#f0f0f0")
+        self.style.configure('Header.TLabel', font=('Helvetica', 16, 'bold'), background="#f0f0f0")
         
-        if question['options'][answer - 1] == question['answer']:
-            score += question['points']
-    
-    print(f"\nSkor Anda: {score}")
-    
-    # Simpan skor pengguna
-    data_pengguna[username]['score'] = score
-    
-    # Pilihan untuk mengulang kuis atau keluar
-    while True:
-        choice = input("\nIngin mengulang kuis? (y/n): ").lower()
-        if choice == 'y':
-            take_quiz(username)
-        elif choice == 'n':
-            print("Terima kasih telah mengikuti kuis!")
-            break
-        else:
-            print("Pilihan kamu tidak vali!")
-
-# Fungsi untuk tampilan admin
-def admin_menu():
-    print("\n=== ADMIN MENU ===")
-    while True:
-        print("\n1. Tambah Soal")
-        print("2. Edit Soal")
-        print("3. Hapus Soal")
-        print("4. Atur Poin Soal")
-        print("5. Kembali ke Login")
+        self.main_menu()
         
-        # Validasi input pilihan menu admin
-        while True:
-            try:
-                choice = int(input("Pilih menu: "))
-                if choice < 1 or choice > 5:
-                    raise ValueError("Pilihan harus antara 1 dan 5.")
-                break
-            except ValueError as e:
-                print(f"Input salah: {e}")
-        
-        if choice == 1:
-            add_question()
-        elif choice == 2:
-            edit_question()
-        elif choice == 3:
-            delete_question()
-        elif choice == 4:
-            set_question_points()
-        elif choice == 5:
-            break
+    def center_window(self, window):
+        window.update_idletasks()
+        width = window.winfo_width()
+        height = window.winfo_height()
+        x = (window.winfo_screenwidth() // 2) - (width // 2)
+        y = (window.winfo_screenheight() // 2) - (height // 2)
+        window.geometry(f'{width}x{height}+{x}+{y}')
 
-# Fungsi untuk menambah soal
-def add_question():
-    question = input("\nMasukkan soal baru: ")
-    options = [input("Pilihan 1: "), input("Pilihan 2: "), input("Pilihan 3: ")]
-    answer = input("Jawaban yang benar: ")
-    
-    # Validasi poin
-    while True:
-        try:
-            points = int(input("Poin soal: "))
-            if points <= 0:
-                raise ValueError("Poin harus lebih besar dari 0.")
-            break
-        except ValueError as e:
-            print(f"Input salah: {e}")
-    
-    data_kuis.append({"question": question, "options": options, "answer": answer, "points": points})
-    print("Soal berhasil ditambahkan!")
+    def create_frame(self):
+        frame = ttk.Frame(self.root, padding="20")
+        frame.place(relx=0.5, rely=0.5, anchor="center")
+        return frame
 
-# Fungsi untuk mengedit soal
-def edit_question():
-    list_questions()
-    
-    # Validasi input nomor soal
-    while True:
-        try:
-            question_index = int(input("\nPilih nomor soal yang ingin diedit: ")) - 1
-            if question_index < 0 or question_index >= len(data_kuis):
-                raise ValueError("Nomor soal tidak valid!")
-            break
-        except ValueError as e:
-            print(f"Input salah: {e}")
-    
-    question = input("Masukkan soal baru: ")
-    options = [input("Pilihan 1: "), input("Pilihan 2: "), input("Pilihan 3: ")]
-    answer = input("Jawaban yang benar: ")
-    
-    # Validasi poin
-    while True:
-        try:
-            points = int(input("Poin soal: "))
-            if points <= 0:
-                raise ValueError("Poin harus lebih besar dari 0.")
-            break
-        except ValueError as e:
-            print(f"Input salah: {e}")
-    
-    data_kuis[question_index] = {"question": question, "options": options, "answer": answer, "points": points}
-    print("Soal berhasil diubah!")
-
-# Fungsi untuk menghapus soal
-def delete_question():
-    list_questions()
-    
-    # Validasi input nomor soal
-    while True:
-        try:
-            question_index = int(input("\nPilih nomor soal yang ingin dihapus: ")) - 1
-            if question_index < 0 or question_index >= len(data_kuis):
-                raise ValueError("Nomor soal tidak valid!")
-            break
-        except ValueError as e:
-            print(f"Input salah: {e}")
-    
-    data_kuis.pop(question_index)
-    print("Soal berhasil dihapus!")
-
-# Fungsi untuk mengatur poin soal
-def set_question_points():
-    list_questions()
-    
-    # Validasi input nomor soal
-    while True:
-        try:
-            question_index = int(input("\nPilih nomor soal yang ingin diubah poinnya: ")) - 1
-            if question_index < 0 or question_index >= len(data_kuis):
-                raise ValueError("Nomor soal tidak valid!")
-            break
-        except ValueError as e:
-            print(f"Input salah: {e}")
-    
-    while True:
-        try:
-            points = int(input("Masukkan jumlah poin baru: "))
-            if points <= 0:
-                raise ValueError("Poin harus lebih besar dari 0.")
-            break
-        except ValueError:
-            print(f"Input salah: harus angka dan lebih besar dari 0")
-    
-    data_kuis[question_index]['points'] = points
-    print("Poin soal berhasil diubah!")
-
-# Fungsi untuk menampilkan daftar soal
-def list_questions():
-    print("\nDaftar Soal:")
-    for idx, question in enumerate(data_kuis, 1):
-        print(f"{idx}. {question['question']}")
-
-# Menu utama
-def main():
-    print("Selamat datang di sistem kuis!")
-    while True:
-        print("\n1. Login")
-        print("2. Sign Up")
-        print("3. Keluar")
-        
-        # Validasi input pilihan menu
-        while True:
-            try:
-                choice = int(input("Pilih menu: "))
-                if choice < 1 or choice > 3:
-                    raise ValueError("Pilihan haru antsara 1 dan 3.")
-                break
-            except ValueError:
-                print(f"Input salah: harus angka dan pilihan harus antara 1 dan 3")
-        
-        if choice == 1:
-            username = login()
-            if username:
-                if data_pengguna[username]['role'] == "admin":
-                    admin_menu()
-                else:
-                    take_quiz(username)
-        elif choice == 2:
-            username = signup()
-            if username:
-                print("Akun berhasil dibuat, silakan login!")
-        elif choice == 3:
-            print("Terima kasih, sampai jumpa!")
-            break
-
-import tkinter as tk
-from tkinter import messagebox
-
-# Data penyimpanan akun pengguna dan soal
-data_pengguna = {
-    "admin": {"password": "saya adalah admin", "role": "admin"}  # Default akun admin
-}
-data_kuis = [
-    {"question": "Apa ibu kota Indonesia?", "options": ["Jakarta", "Bandung", "Surabaya"], "answer": "Jakarta", "points": 10},
-    {"question": "Berapa banyak planet di tata surya?", "options": ["7", "8", "9"], "answer": "8", "points": 10},
-]
-
-# Fungsi untuk login
-def login_gui():
-    def login_action():
-        username = entry_username.get()
-        password = entry_password.get()
-        if username in data_pengguna and data_pengguna[username]['password'] == password:
-            messagebox.showinfo("Login", "Login berhasil!")
-            root_login.destroy()
-            if data_pengguna[username]['role'] == "admin":
-                admin_menu_gui()
-            else:
-                take_quiz_gui(username)
-        else:
-            messagebox.showerror("Login", "Username atau password salah!")
-
-    root_login = tk.Tk()
-    root_login.title("Login")
-    
-    tk.Label(root_login, text="Username:").pack()
-    entry_username = tk.Entry(root_login)
-    entry_username.pack()
-    
-    tk.Label(root_login, text="Password:").pack()
-    entry_password = tk.Entry(root_login, show="*")
-    entry_password.pack()
-
-    tk.Button(root_login, text="Login", command=login_action).pack()
-    tk.Button(root_login, text="Sign Up", command=signup_gui).pack()
-
-    root_login.mainloop()
-
-# Fungsi untuk signup
-def signup_gui():
-    def signup_action():
-        username = entry_username.get()
-        password = entry_password.get()
-        if username in data_pengguna:
-            messagebox.showerror("Sign Up", "Username sudah terdaftar!")
-        else:
-            data_pengguna[username] = {"password": password, "role": "user"}
-            messagebox.showinfo("Sign Up", f"Akun {username} berhasil dibuat!")
-            root_signup.destroy()
-            login_gui()
-
-    root_signup = tk.Tk()
-    root_signup.title("Sign Up")
-    
-    tk.Label(root_signup, text="Username:").pack()
-    entry_username = tk.Entry(root_signup)
-    entry_username.pack()
-    
-    tk.Label(root_signup, text="Password:").pack()
-    entry_password = tk.Entry(root_signup, show="*")
-    entry_password.pack()
-
-    tk.Button(root_signup, text="Sign Up", command=signup_action).pack()
-    tk.Button(root_signup, text="Back to Login", command=lambda: [root_signup.destroy(), login_gui()]).pack()
-
-    root_signup.mainloop()
-
-# Fungsi untuk menjalankan kuis dengan GUI
-def take_quiz_gui(username):
-    current_question_index = 0
-    score = 0
-    var_answers = []
-
-    def next_question():
-        nonlocal current_question_index
-        if current_question_index < len(data_kuis) - 1:
-            current_question_index += 1
-            display_question()
-
-    def prev_question():
-        nonlocal current_question_index
-        if current_question_index > 0:
-            current_question_index -= 1
-            display_question()
-
-    def submit_quiz():
-        nonlocal score
-        for idx, question in enumerate(data_kuis):
-            selected_option = var_answers[idx].get()
-            if selected_option == question['answer']:
-                score += question['points']
-        
-        messagebox.showinfo("Skor Kuis", f"Skor Anda: {score}")
-        data_pengguna[username]['score'] = score
-        if messagebox.askyesno("Ulang Kuis", "Ingin mengulang kuis?"):
-            take_quiz_gui(username)
-        else:
-            root_quiz.destroy()
-
-    def display_question():
-        question = data_kuis[current_question_index]
-        for widget in root_quiz.winfo_children():
+    def main_menu(self):
+        for widget in self.root.winfo_children():
             widget.destroy()
 
-        tk.Label(root_quiz, text=f"Soal {current_question_index + 1}: {question['question']}").pack()
-
-        var_answer = tk.StringVar(value="")
-        var_answers.append(var_answer)
-        for option in question['options']:
-            tk.Radiobutton(root_quiz, text=option, variable=var_answer, value=option).pack()
-
-        tk.Button(root_quiz, text="Next", command=next_question).pack(side="left", padx=10)
-        tk.Button(root_quiz, text="Prev", command=prev_question).pack(side="right", padx=10)
-        tk.Button(root_quiz, text="Submit", command=submit_quiz).pack(side="right", padx=10)
-
-    root_quiz = tk.Tk()
-    root_quiz.title("Kuis")
-
-    display_question()
-    root_quiz.mainloop()
-
-# Fungsi untuk menu admin dengan GUI
-def admin_menu_gui():
-    def add_question_gui():
-        def add_question_action():
-            question = entry_question.get()
-            options = [entry_option1.get(), entry_option2.get(), entry_option3.get()]
-            answer = entry_answer.get()
-            try:
-                points = int(entry_points.get())
-                if points <= 0:
-                    raise ValueError("Poin harus lebih besar dari 0.")
-                data_kuis.append({"question": question, "options": options, "answer": answer, "points": points})
-                messagebox.showinfo("Admin Menu", "Soal berhasil ditambahkan!")
-                root_add_question.destroy()
-            except ValueError as e:
-                messagebox.showerror("Admin Menu", str(e))
-
-        root_add_question = tk.Tk()
-        root_add_question.title("Tambah Soal")
-
-        tk.Label(root_add_question, text="Masukkan soal:").pack()
-        entry_question = tk.Entry(root_add_question)
-        entry_question.pack()
+        frame = self.create_frame()
         
-        tk.Label(root_add_question, text="Pilihan 1:").pack()
-        entry_option1 = tk.Entry(root_add_question)
-        entry_option1.pack()
+        ttk.Label(frame, text="Selamat Datang di Sistem Kuis", 
+                 style='Header.TLabel').pack(pady=20)
+        
+        ttk.Button(frame, text="Login", command=self.login_window, 
+                  width=30).pack(pady=10)
+        ttk.Button(frame, text="Sign Up", command=self.signup_window, 
+                  width=30).pack(pady=10)
+        ttk.Button(frame, text="Keluar", command=self.root.quit, 
+                  width=30).pack(pady=10)
+        
+        self.center_window(self.root)
 
-        tk.Label(root_add_question, text="Pilihan 2:").pack()
-        entry_option2 = tk.Entry(root_add_question)
-        entry_option2.pack()
+    def login_window(self):
+        login_window = tk.Toplevel(self.root)
+        login_window.title("Login")
+        login_window.geometry("400x300")
+        login_window.configure(bg="#f0f0f0")
+        
+        frame = ttk.Frame(login_window, padding="20")
+        frame.place(relx=0.5, rely=0.5, anchor="center")
+        
+        ttk.Label(frame, text="Login", style='Header.TLabel').pack(pady=20)
+        
+        ttk.Label(frame, text="Username:").pack()
+        username_entry = ttk.Entry(frame, width=30)
+        username_entry.pack(pady=5)
+        
+        ttk.Label(frame, text="Password:").pack()
+        password_entry = ttk.Entry(frame, show="*", width=30)
+        password_entry.pack(pady=5)
+        
+        def login_action():
+            username = username_entry.get()
+            password = password_entry.get()
+            if username in data_pengguna and data_pengguna[username]['password'] == password:
+                login_window.destroy()
+                if data_pengguna[username]['role'] == "admin":
+                    self.admin_menu()
+                else:
+                    self.take_quiz(username)
+            else:
+                messagebox.showerror("Error", "Username atau password salah!")
+        
+        ttk.Button(frame, text="Login", command=login_action, 
+                  width=30).pack(pady=10)
+        
+        self.center_window(login_window)
 
-        tk.Label(root_add_question, text="Pilihan 3:").pack()
-        entry_option3 = tk.Entry(root_add_question)
-        entry_option3.pack()
+    def signup_window(self):
+        signup_window = tk.Toplevel(self.root)
+        signup_window.title("Sign Up")
+        signup_window.geometry("400x300")
+        signup_window.configure(bg="#f0f0f0")
+        
+        frame = ttk.Frame(signup_window, padding="20")
+        frame.place(relx=0.5, rely=0.5, anchor="center")
+        
+        ttk.Label(frame, text="Sign Up", style='Header.TLabel').pack(pady=20)
+        
+        ttk.Label(frame, text="Username:").pack()
+        username_entry = ttk.Entry(frame, width=30)
+        username_entry.pack(pady=5)
+        
+        ttk.Label(frame, text="Password:").pack()
+        password_entry = ttk.Entry(frame, show="*", width=30)
+        password_entry.pack(pady=5)
+        
+        def signup_action():
+            username = username_entry.get()
+            password = password_entry.get()
+            if username in data_pengguna:
+                messagebox.showerror("Error", "Username sudah terdaftar!")
+            else:
+                data_pengguna[username] = {"password": password, "role": "user"}
+                messagebox.showinfo("Success", f"Akun {username} berhasil dibuat!")
+                signup_window.destroy()
+        
+        ttk.Button(frame, text="Sign Up", command=signup_action, 
+                  width=30).pack(pady=10)
+        
+        self.center_window(signup_window)
 
-        tk.Label(root_add_question, text="Jawaban yang benar:").pack()
-        entry_answer = tk.Entry(root_add_question)
-        entry_answer.pack()
+    def take_quiz(self, username):
+        quiz_window = tk.Toplevel(self.root)
+        quiz_window.title("Kuis")
+        quiz_window.geometry("600x400")
+        quiz_window.configure(bg="#f0f0f0")
+        
+        current_question = {'value': 0}
+        answers = []
+        score = {'value': 0}
+        
+        main_frame = ttk.Frame(quiz_window, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        question_frame = ttk.Frame(main_frame)
+        question_frame.pack(fill=tk.BOTH, expand=True)
+        
+        def display_question():
+            for widget in question_frame.winfo_children():
+                widget.destroy()
+                
+            question = data_kuis[current_question['value']]
+            
+            ttk.Label(question_frame, 
+                     text=f"Soal {current_question['value'] + 1} dari {len(data_kuis)}", 
+                     style='Header.TLabel').pack(pady=10)
+            
+            ttk.Label(question_frame, 
+                     text=question['question'],
+                     wraplength=500).pack(pady=10)
+            
+            answer_var = tk.StringVar(value="")
+            answers.append(answer_var)
+            
+            for option in question['options']:
+                ttk.Radiobutton(question_frame, 
+                              text=option,
+                              variable=answer_var,
+                              value=option).pack(pady=5)
+        
+        def next_question():
+            if current_question['value'] < len(data_kuis) - 1:
+                current_question['value'] += 1
+                display_question()
+        
+        def prev_question():
+            if current_question['value'] > 0:
+                current_question['value'] -= 1
+                display_question()
+        
+        def submit_quiz():
+            score['value'] = 0
+            for idx, question in enumerate(data_kuis):
+                if answers[idx].get() == question['answer']:
+                    score['value'] += question['points']
+            
+            data_pengguna[username]['score'] = score['value']
+            messagebox.showinfo("Hasil", f"Skor Anda: {score['value']}")
+            
+            if messagebox.askyesno("Ulangi", "Ingin mengulang kuis?"):
+                quiz_window.destroy()
+                self.take_quiz(username)
+            else:
+                quiz_window.destroy()
+        
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=20)
+        
+        ttk.Button(button_frame, text="< Sebelumnya", command=prev_question).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Selanjutnya >", command=next_question).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Selesai", command=submit_quiz).pack(side=tk.LEFT, padx=5)
+        
+        display_question()
+        self.center_window(quiz_window)
 
-        tk.Label(root_add_question, text="Poin soal:").pack()
-        entry_points = tk.Entry(root_add_question)
-        entry_points.pack()
+    def admin_menu(self):
+        admin_window = tk.Toplevel(self.root)
+        admin_window.title("Admin Menu")
+        admin_window.geometry("500x400")
+        admin_window.configure(bg="#f0f0f0")
+        
+        frame = ttk.Frame(admin_window, padding="20")
+        frame.place(relx=0.5, rely=0.5, anchor="center")
+        
+        ttk.Label(frame, text="Menu Admin", style='Header.TLabel').pack(pady=20)
+        
+        def add_question_window():
+            add_window = tk.Toplevel(admin_window)
+            add_window.title("Tambah Soal")
+            add_window.geometry("500x500")
+            add_window.configure(bg="#f0f0f0")
+            
+            frame = ttk.Frame(add_window, padding="20")
+            frame.place(relx=0.5, rely=0.5, anchor="center")
+            
+            ttk.Label(frame, text="Tambah Soal Baru", style='Header.TLabel').pack(pady=20)
+            
+            entries = {}
+            for field in ['question', 'option1', 'option2', 'option3', 'answer', 'points']:
+                ttk.Label(frame, text=field.capitalize() + ":").pack()
+                entry = ttk.Entry(frame, width=40)
+                entry.pack(pady=5)
+                entries[field] = entry
+            
+            def save_question():
+                try:
+                    points = int(entries['points'].get())
+                    if points <= 0:
+                        raise ValueError("Poin harus lebih dari 0")
+                    
+                    options = [entries['option1'].get(), 
+                             entries['option2'].get(), 
+                             entries['option3'].get()]
+                    
+                    data_kuis.append({
+                        "question": entries['question'].get(),
+                        "options": options,
+                        "answer": entries['answer'].get(),
+                        "points": points
+                    })
+                    messagebox.showinfo("Success", "Soal berhasil ditambahkan!")
+                    add_window.destroy()
+                except ValueError:
+                    messagebox.showerror("Error", "Poin harus berupa angka positif!")
+            
+            ttk.Button(frame, text="Simpan", command=save_question, 
+                      width=30).pack(pady=10)
+            
+            self.center_window(add_window)
+        
+        ttk.Button(frame, text="Tambah Soal", command=add_question_window, 
+                  width=30).pack(pady=10)
+        ttk.Button(frame, text="Kembali", command=admin_window.destroy, 
+                  width=30).pack(pady=10)
+        
+        self.center_window(admin_window)
 
-        tk.Button(root_add_question, text="Tambah Soal", command=add_question_action).pack()
-        root_add_question.mainloop()
+    def run(self):
+        self.root.mainloop()
 
-    def admin_menu_action():
-        root_admin_menu = tk.Tk()
-        root_admin_menu.title("Menu Admin")
-
-        tk.Button(root_admin_menu, text="Tambah Soal", command=add_question_gui).pack()
-        tk.Button(root_admin_menu, text="Keluar", command=root_admin_menu.destroy).pack()
-
-        root_admin_menu.mainloop()
-
-    admin_menu_action()
-
-# Menu utama
-def main_gui():
-    root = tk.Tk()
-    root.title("Selamat Datang di Sistem Kuis")
-
-    tk.Button(root, text="Login", command=login_gui).pack()
-    tk.Button(root, text="Sign Up", command=signup_gui).pack()
-    tk.Button(root, text="Keluar", command=root.destroy).pack()
-
-    root.mainloop()
-
-# Jalankan aplikasi GUI
 if __name__ == "__main__":
-    main_gui()
+    app = QuizApp()
+    app.run()
