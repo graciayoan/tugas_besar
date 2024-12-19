@@ -1,23 +1,24 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from tkinter.font import Font
 
-# Data storage remains the same
+
+# Data penyimpanan pengguna dan soal
 data_pengguna = {
-    "admin": {"password": "saya adalah admin", "role": "admin"}
+    "1": {"password": "1", "role": "admin"}
 }
 data_kuis = [
     {"question": "Apa planet terbesar dalam tata surya kita?", "options": ["Mars", "Jupiter", "Pluto", "Saturnus"], "answer": "Jupiter", "points": 10},
-    {"question": "Sungai terpanjang di indonesia terletak di pulau", "options": ["Kalimantan", "Sumatra", "Jawa", "Sulawesi"], "answer": "Kalimantan", "points": 10},
+    {"question": "Sungai terpanjang di Indonesia terletak di pulau?", "options": ["Kalimantan", "Sumatra", "Jawa", "Sulawesi"], "answer": "Kalimantan", "points": 10},
     {"question": "Berapa jumlah hari pada tahun kabisat?", "options": ["144 hari", "256 hari", "366 hari", "401 hari"], "answer": "366 hari", "points": 10},
     {"question": "Arah jam 09.00 sama dengan arah?", "options": ["Barat", "Timur", "Selatan", "Barat Daya"], "answer": "Barat", "points": 10},
-    {"question": "Berapa jumlah kotak kotak tempat bidak pada papan catur?", "options": ["54", "62", "64", "56"], "answer": "64", "points": 10},
+    {"question": "Berapa jumlah kotak tempat bidak pada papan catur?", "options": ["54", "62", "64", "56"], "answer": "64", "points": 10},
     {"question": "Hewan nasional Australia adalah...", "options": ["Koala", "Kanguru", "Platipus", "Gajah"], "answer": "Kanguru", "points": 10},
     {"question": "Bunga nasional Jepang adalah...", "options": ["Sakura", "Tulip", "Mawar", "Melati"], "answer": "Sakura", "points": 10},
-    {"question": "Umar Wirahadikusuma adalah wakil presiden Indonesia ke", "options": ["5", "3", "2", "4"], "answer": "4", "points": 10},
-    {"question": "Benua apa yang disebut dengan benua kuning? ", "options": ["Asia", "Afrika", "Eropa", "Australia"], "answer": "Asia", "points": 10},
-    {"question": "Patung Sphinx banyak dijumpai di negara", "options": ["Mesir", "Swiss", "Indonesia", "India"], "answer": "Mesir", "points": 10},
+    {"question": "Umar Wirahadikusuma adalah wakil presiden Indonesia ke?", "options": ["5", "3", "2", "4"], "answer": "4", "points": 10},
+    {"question": "Benua apa yang disebut dengan benua kuning?", "options": ["Asia", "Afrika", "Eropa", "Australia"], "answer": "Asia", "points": 10},
+    {"question": "Patung Sphinx banyak dijumpai di negara?", "options": ["Mesir", "Swiss", "Indonesia", "India"], "answer": "Mesir", "points": 10},
 ]
+
 
 class QuizApp:
     def __init__(self):
@@ -33,7 +34,7 @@ class QuizApp:
         self.style.configure('Header.TLabel', font=('Helvetica', 16, 'bold'), background="#f0f0f0")
         
         self.main_menu()
-        
+
     def center_window(self, window):
         window.update_idletasks()
         width = window.winfo_width()
@@ -183,7 +184,7 @@ class QuizApp:
             if current_question['value'] > 0:
                 current_question['value'] -= 1
                 display_question()
-        
+         
         def submit_quiz():
             score['value'] = 0
             for idx, question in enumerate(data_kuis):
@@ -192,12 +193,7 @@ class QuizApp:
             
             data_pengguna[username]['score'] = score['value']
             messagebox.showinfo("Hasil", f"Skor Anda: {score['value']}")
-            
-            if messagebox.askyesno("Ulangi", "Ingin mengulang kuis?"):
-                quiz_window.destroy()
-                self.take_quiz(username)
-            else:
-                quiz_window.destroy()
+            quiz_window.destroy()
         
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(pady=20)
@@ -212,67 +208,172 @@ class QuizApp:
     def admin_menu(self):
         admin_window = tk.Toplevel(self.root)
         admin_window.title("Admin Menu")
-        admin_window.geometry("500x400")
+        admin_window.geometry("600x400")
         admin_window.configure(bg="#f0f0f0")
         
         frame = ttk.Frame(admin_window, padding="20")
-        frame.place(relx=0.5, rely=0.5, anchor="center")
+        frame.pack(fill=tk.BOTH, expand=True)
         
         ttk.Label(frame, text="Menu Admin", style='Header.TLabel').pack(pady=20)
         
-        def add_question_window():
-            add_window = tk.Toplevel(admin_window)
-            add_window.title("Tambah Soal")
-            add_window.geometry("500x500")
-            add_window.configure(bg="#f0f0f0")
-            
-            frame = ttk.Frame(add_window, padding="20")
-            frame.place(relx=0.5, rely=0.5, anchor="center")
-            
-            ttk.Label(frame, text="Tambah Soal Baru", style='Header.TLabel').pack(pady=20)
-            
-            entries = {}
-            for field in ['question', 'option1', 'option2', 'option3', 'answer', 'points']:
-                ttk.Label(frame, text=field.capitalize() + ":").pack()
-                entry = ttk.Entry(frame, width=40)
-                entry.pack(pady=5)
-                entries[field] = entry
-            
-            def save_question():
-                try:
-                    points = int(entries['points'].get())
-                    if points <= 0:
-                        raise ValueError("Poin harus lebih dari 0")
-                    
-                    options = [entries['option1'].get(), 
-                             entries['option2'].get(), 
-                             entries['option3'].get()]
-                    
-                    data_kuis.append({
-                        "question": entries['question'].get(),
-                        "options": options,
-                        "answer": entries['answer'].get(),
-                        "points": points
-                    })
-                    messagebox.showinfo("Success", "Soal berhasil ditambahkan!")
-                    add_window.destroy()
-                except ValueError:
-                    messagebox.showerror("Error", "Poin harus berupa angka positif!")
-            
-            ttk.Button(frame, text="Simpan", command=save_question, 
-                      width=30).pack(pady=10)
-            
-            self.center_window(add_window)
+        def open_question_manager():
+            self.manage_questions(admin_window)
         
-        ttk.Button(frame, text="Tambah Soal", command=add_question_window, 
-                  width=30).pack(pady=10)
-        ttk.Button(frame, text="Kembali", command=admin_window.destroy, 
-                  width=30).pack(pady=10)
+        ttk.Button(frame, text="Kelola Soal", command=open_question_manager).pack(pady=10)
+        ttk.Button(frame, text="Kembali ke Menu Utama", command=self.main_menu).pack(pady=10)
         
         self.center_window(admin_window)
 
+    def manage_questions(self, parent_window):
+        question_window = tk.Toplevel(parent_window)
+        question_window.title("Kelola Soal")
+        question_window.geometry("700x500")
+        question_window.configure(bg="#f0f0f0")
+        
+        def refresh_question_list():
+            for widget in question_list_frame.winfo_children():
+                widget.destroy()
+            for idx, question in enumerate(data_kuis):
+                ttk.Label(question_list_frame, text=f"{idx + 1}. {question['question']}").pack(anchor="w")
+                ttk.Button(question_list_frame, text="Edit", command=lambda i=idx: edit_question(i)).pack(side="right")
+                ttk.Button(question_list_frame, text="Hapus", command=lambda i=idx: delete_question(i)).pack(side="right")
+        
+        def add_question():
+            def save_question():
+                new_question = question_entry.get()
+                new_options = [opt1_entry.get(), opt2_entry.get(), opt3_entry.get(), opt4_entry.get()]
+                new_answer = answer_entry.get()
+                new_points = points_entry.get()
+                if not (new_question and all(new_options) and new_answer and new_points):
+                    messagebox.showerror("Error", "Semua kolom harus diisi!")
+                    return
+                data_kuis.append({
+                    "question": new_question,
+                    "options": new_options,
+                    "answer": new_answer,
+                    "points": int(new_points)
+                })
+                refresh_question_list()
+                add_window.destroy()
+            
+            add_window = tk.Toplevel(question_window)
+            add_window.title("Tambah Soal")
+            add_window.geometry("400x400")
+            add_window.configure(bg="#f0f0f0")
+
+            frame = ttk.Frame(add_window, padding="20")
+            frame.pack(fill=tk.BOTH, expand=True)
+
+            ttk.Label(frame, text="Tambah Soal", style='Header.TLabel').pack(pady=10)
+
+            ttk.Label(frame, text="Pertanyaan:").pack(anchor="w", pady=5)
+            question_entry = ttk.Entry(frame, width=50)
+            question_entry.pack(pady=5)
+
+            ttk.Label(frame, text="Opsi Jawaban:").pack(anchor="w", pady=5)
+            opt1_entry = ttk.Entry(frame, width=50)
+            opt1_entry.pack(pady=5)
+            opt2_entry = ttk.Entry(frame, width=50)
+            opt2_entry.pack(pady=5)
+            opt3_entry = ttk.Entry(frame, width=50)
+            opt3_entry.pack(pady=5)
+            opt4_entry = ttk.Entry(frame, width=50)
+            opt4_entry.pack(pady=5)
+
+            ttk.Label(frame, text="Jawaban Benar:").pack(anchor="w", pady=5)
+            answer_entry = ttk.Entry(frame, width=50)
+            answer_entry.pack(pady=5)
+
+            ttk.Label(frame, text="Poin:").pack(anchor="w", pady=5)
+            points_entry = ttk.Entry(frame, width=20)
+            points_entry.pack(pady=5)
+
+            ttk.Button(frame, text="Simpan", command=save_question).pack(pady=10)
+
+            self.center_window(add_window)
+
+        def edit_question(index):
+            def save_edited_question():
+                edited_question = question_entry.get()
+                edited_options = [opt1_entry.get(), opt2_entry.get(), opt3_entry.get(), opt4_entry.get()]
+                edited_answer = answer_entry.get()
+                edited_points = points_entry.get()
+                if not (edited_question and all(edited_options) and edited_answer and edited_points):
+                    messagebox.showerror("Error", "Semua kolom harus diisi!")
+                    return
+                data_kuis[index] = {
+                    "question": edited_question,
+                    "options": edited_options,
+                    "answer": edited_answer,
+                    "points": int(edited_points)
+                }
+                refresh_question_list()
+                edit_window.destroy()
+
+            question_data = data_kuis[index]
+
+            edit_window = tk.Toplevel(question_window)
+            edit_window.title("Edit Soal")
+            edit_window.geometry("400x400")
+            edit_window.configure(bg="#f0f0f0")
+
+            frame = ttk.Frame(edit_window, padding="20")
+            frame.pack(fill=tk.BOTH, expand=True)
+
+            ttk.Label(frame, text="Edit Soal", style='Header.TLabel').pack(pady=10)
+
+            ttk.Label(frame, text="Pertanyaan:").pack(anchor="w", pady=5)
+            question_entry = ttk.Entry(frame, width=50)
+            question_entry.insert(0, question_data["question"])
+            question_entry.pack(pady=5)
+
+            ttk.Label(frame, text="Opsi Jawaban:").pack(anchor="w", pady=5)
+            opt1_entry = ttk.Entry(frame, width=50)
+            opt1_entry.insert(0, question_data["options"][0])
+            opt1_entry.pack(pady=5)
+            opt2_entry = ttk.Entry(frame, width=50)
+            opt2_entry.insert(0, question_data["options"][1])
+            opt2_entry.pack(pady=5)
+            opt3_entry = ttk.Entry(frame, width=50)
+            opt3_entry.insert(0, question_data["options"][2])
+            opt3_entry.pack(pady=5)
+            opt4_entry = ttk.Entry(frame, width=50)
+            opt4_entry.insert(0, question_data["options"][3])
+            opt4_entry.pack(pady=5)
+
+            ttk.Label(frame, text="Jawaban Benar:").pack(anchor="w", pady=5)
+            answer_entry = ttk.Entry(frame, width=50)
+            answer_entry.insert(0, question_data["answer"])
+            answer_entry.pack(pady=5)
+
+            ttk.Label(frame, text="Poin:").pack(anchor="w", pady=5)
+            points_entry = ttk.Entry(frame, width=20)
+            points_entry.insert(0, question_data["points"])
+            points_entry.pack(pady=5)
+
+            ttk.Button(frame, text="Simpan", command=save_edited_question).pack(pady=10)
+
+            self.center_window(edit_window)
+
+        def delete_question(index):
+            confirm = messagebox.askyesno("Konfirmasi", "Apakah Anda yakin ingin menghapus soal ini?")
+            if confirm:
+                del data_kuis[index]
+                refresh_question_list()
+
+        ttk.Label(question_window, text="Kelola Soal", style='Header.TLabel').pack(pady=10)
+
+        question_list_frame = ttk.Frame(question_window, padding="10")
+        question_list_frame.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Button(question_window, text="Tambah Soal", command=add_question).pack(pady=10)
+
+        refresh_question_list()
+        self.center_window(question_window)
+
     def run(self):
         self.root.mainloop()
+
 
 if __name__ == "__main__":
     app = QuizApp()
